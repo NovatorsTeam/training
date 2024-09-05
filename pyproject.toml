@@ -1,0 +1,23 @@
+[project]
+name = "hackaton_model_training"
+version = "0.0.1"
+description = "Default template for PDM package"
+authors = [
+    {name = "Alexey Laletin", email = "alex.klark.laletin@yandex.com"},
+    {name = "George Kiselev", email = "gsx2002@yandex.ru"}
+]
+dependencies = [
+    "tqdm>=4.66.5",
+]
+requires-python = "==3.11.*"
+readme = "README.md"
+license = {text = "APACHE 2.0"}
+
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.dev-dependencies]
+data = [
+    "bing-image-downloader>=1.1.2",
+]
