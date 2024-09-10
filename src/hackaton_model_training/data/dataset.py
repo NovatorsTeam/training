@@ -22,9 +22,9 @@ class RansomSideDataset(Dataset):
         bottom_image_path = self._botton_files[index]
         side_images_paths = np.random.choice(self._side_files, 4, replace=False)
 
-        is_replacment: bool = Path(bottom_image_path).parent.name == "replacment" or any(
+        is_replacment: float = float(Path(bottom_image_path).parent.name == "replacment" or any(
             [Path(path).parent.name == "replacment" for path in side_images_paths]
-        )
+        ))
 
         bottom_image = torchvision.io.read_image(bottom_image_path)
         height, width = bottom_image.shape[-2:]

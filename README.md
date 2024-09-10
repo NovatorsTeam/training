@@ -31,6 +31,26 @@ Processed
         └── ...
 ```
 
+# MLFlow settings
+
+Rename the `.env.example` to `.env` and specify the **MLFLOW_EXPERIMENT_NAME** and **MLFLOW_TRACKING_URI** variables.
+If you already set this variables as environment variables - you can skip this part.
+
+# Training
+
+To run train script run this command with specified settings
+```bash
+python -m src.hackaton_model_training.train \
+--dataset_path=data/Processed \
+--lr=0.001 \
+--save_path=models \
+--save_every=10 \
+--epochs=100 \
+--model_name=resnet \
+--device=cuda \
+--mlflow_tracking=True
+```
+
 # Testing
 
 You can run tests by pytest library
