@@ -5,17 +5,20 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import os
 
+input_path = "data/raw/cleared_data"
+output_path = "data/processed"
+
 data_folders = ['remain', 'replace']
 image_counters = {k: 1 for k in ['replace_side', 'replace_top', 'remain_side', 'remain_top']}
 distributions = {k: [] for k in ['side_height', 'side_width', 'bottom_height', 'bottom_width']}
 
 for folder in data_folders:
 
-    suffixes = set([filename[-1] for filename in os.listdir(f'./data/{folder}')])
+    suffixes = set([filename[-1] for filename in os.listdir(f'{input_path}/{folder}')])
 
     for suffix in suffixes:
 
-        coco_annotation_file = f'./data/{folder}/annotations{suffix}/instances.json'
+        coco_annotation_file = f'{input_path}/{folder}/annotations{suffix}/instances.json'
         coco = COCO(coco_annotation_file)
 
         classes_ids = coco.getCatIds()
@@ -51,7 +54,7 @@ for folder in data_folders:
 
             M = cv2.getPerspectiveTransform(inpts, outpts)
             file_name = img_info['file_name']
-            img = cv2.imread(f'./data/{folder}/images{suffix}/{file_name}')
+            img = cv2.imread(f'{input_path}/{folder}/images{suffix}/{file_name}')
 
             img_width = int(bbox[2])
             img_height = int(bbox[3])
@@ -59,7 +62,10 @@ for folder in data_folders:
 
             class_folder = 'bottom' if img_class == 'top' else img_class
             file_name = image_counters[f'{folder}_{img_class}']
-            cv2.imwrite(f'./outputs/{class_folder}/{folder}/{file_name}.jpg', warpimg)
+            save_path = f"{output_path}/{class_folder}/{folder}"
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+            cv2.imwrite(f'{save_path}/{file_name}.jpg', warpimg)
             image_counters[f'{folder}_{img_class}'] += 1
 
             #распределение по bbox получившихся кусков
