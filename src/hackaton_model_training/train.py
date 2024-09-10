@@ -99,11 +99,11 @@ def train(
 
         if mlflow_tracking:
             mlflow.log_metrics(
-                {"train_loss": mean(train_losses), "val_loss": mean(val_losses), "lr": scheduler.get_last_lr()},
+                {"train_loss": mean(train_losses), "val_loss": mean(val_losses), "lr": scheduler.get_last_lr()[0]},
                 step=epoch,
             )
         logging.info(
-            f"Epoch {epoch}, train_loss: {mean(train_losses)}, val_loss: {mean(val_losses)}, lr: {scheduler.get_last_lr()}"
+            f"Epoch {epoch}, train_loss: {mean(train_losses)}, val_loss: {mean(val_losses)}, lr: {scheduler.get_last_lr()[0]}"
         )
 
         if (epoch + 1) % save_every == 0:
