@@ -8,6 +8,9 @@ import os
 input_path = "data/raw/cleared_data"
 output_path = "data/processed"
 
+def distance(p1, p2):
+    return np.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
+
 data_folders = ['remain', 'replace']
 image_counters = {k: 1 for k in ['replace_side', 'replace_top', 'remain_side', 'remain_top']}
 distributions = {k: [] for k in ['side_height', 'side_width', 'bottom_height', 'bottom_width']}
@@ -38,33 +41,36 @@ for folder in data_folders:
             img_id = annotation['image_id']
             img_class = id_to_name[annotation['category_id']]
             img_info = coco.imgs[img_id]
-
-            inpts = np.float32([[keypoints[i], keypoints[i+1]] for i in range(0, len(keypoints), 2)])
-            ignored_outpts = np.float32([[0,0],[0,320],[320,320],[320,0]])
-            
-            # размеры по bbox учитываются только при распределении
-            # обрезка стоит 320 на 320
-            # при необходимости сделать название переменной выше ignored, а ниже просто outpts
-            outpts = np.float32([
-                [bbox[0], bbox[1]], 
-                [bbox[0], bbox[1] + bbox[3]], 
-                [bbox[0] + bbox[2], bbox[1] + bbox[3]],
-                [bbox[0] + bbox[2], bbox[1]]
-            ])
-
-            M = cv2.getPerspectiveTransform(inpts, outpts)
             file_name = img_info['file_name']
             img = cv2.imread(f'{input_path}/{folder}/images{suffix}/{file_name}')
 
-            img_width = int(bbox[2])
-            img_height = int(bbox[3])
-            warpimg = cv2.warpPerspective(img, M, (img_width, img_height))
+            inpts = np.float32([[keypoints[i], keypoints[i+1]] for i in range(0, len(keypoints), 2)])
+            length1 = distance(inpts[0], inpts[1]) 
+            length2 = distance(inpts[2], inpts[3])
+            mean_width = (length1 + length2) / 2
+
+            length3 = distance(inpts[1], inpts[2])
+            length4 = distance(inpts[3], inpts[0])
+            mean_height = (length3 + length4) / 2
+            
+            outpts = np.array([
+                [0, 0],
+                [mean_width, 0],
+                [mean_width, mean_height],
+                [0, mean_height]
+            ], dtype='float32')
+
+            M = cv2.getPerspectiveTransform(inpts, outpts)
+            warpimg = cv2.warpPerspective(img, M, (int(mean_width), int(mean_height)))
+
+            if mean_height > mean_width:
+                warpimg = cv2.rotate(warpimg, cv2.ROTATE_90_CLOCKWISE)
 
             class_folder = 'bottom' if img_class == 'top' else img_class
             file_name = image_counters[f'{folder}_{img_class}']
             save_path = f"{output_path}/{class_folder}/{folder}"
-            if not os.path.exists(save_path):
-                os.makedirs(save_path)
+            if not os.path.exists(save_path):	
+                os.makedirs(save_path)	
             cv2.imwrite(f'{save_path}/{file_name}.jpg', warpimg)
             image_counters[f'{folder}_{img_class}'] += 1
 
