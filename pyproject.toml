@@ -20,6 +20,7 @@ dependencies = [
     "onnxscript>=0.1.0.dev20240910",
     "pycocotools>=2.0.8",
     "opencv-python>=4.10.0.84",
+    "torchmetrics>=1.4.1",
 ]
 requires-python = "==3.11.*"
 readme = "README.md"

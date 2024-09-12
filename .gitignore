@@ -164,3 +164,8 @@ cython_debug/
 # Data folders
 data/*
 !src/data/*
+models
+
+# MLFlow
+mlruns
+mlartifacts

@@ -22,9 +22,9 @@ class RansomSideDataset(Dataset):
         bottom_image_path = self._botton_files[index]
         side_images_paths = np.random.choice(self._side_files, 4, replace=False)
 
-        is_replacment: float = float(Path(bottom_image_path).parent.name == "replacment" or any(
-            [Path(path).parent.name == "replacment" for path in side_images_paths]
-        ))
+        is_replacment: bool = Path(bottom_image_path).parent.name == "replace" or any(
+            [Path(path).parent.name == "replace" for path in side_images_paths]
+        )
 
         bottom_image = torchvision.io.read_image(bottom_image_path)
         height, width = bottom_image.shape[-2:]
@@ -37,5 +37,7 @@ class RansomSideDataset(Dataset):
         if self.transform:
             bottom_image = self.transform(bottom_image)
             side_concatination = self.transform(side_concatination)
+
+        is_replacment = torch.tensor([0.0, 1.0]) if is_replacment else torch.tensor([1.0, 0.0])
 
         return bottom_image, side_concatination, is_replacment
