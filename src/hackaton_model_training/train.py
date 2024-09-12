@@ -11,11 +11,15 @@ from torch.onnx import dynamo_export
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
-from torchvision.models import resnet18
+from torchmetrics.classification import AUROC, BinaryF1Score, Precision, Recall
+from torchvision.models import resnet18, resnet34
 
 from src.hackaton_model_training.data.dataset import RansomSideDataset
 
 load_dotenv()
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 def train(
@@ -53,6 +57,8 @@ def train(
         [
             torchvision.transforms.Resize(size=(320, 320)),
             torchvision.transforms.Grayscale(num_output_channels=1),
+            torchvision.transforms.RandomHorizontalFlip(),
+            torchvision.transforms.RandomVerticalFlip(),
         ]
     )
     dataset = RansomSideDataset(path=dataset_path, transform=transform)
@@ -63,13 +69,19 @@ def train(
     train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=32, shuffle=True)
 
-    model = resnet18()
-    model.fc = torch.nn.Sequential(torch.nn.Linear(512, 1), torch.nn.Sigmoid())
+    model = resnet34()
+    model.fc = torch.nn.Sequential(torch.nn.Linear(512, 2), torch.nn.Softmax())
     model.conv1 = torch.nn.Conv2d(2, 64, kernel_size=7, stride=2, padding=3, bias=False)
     model = model.to(device)
 
     optimizer = Adam(model.parameters(), lr=lr)
-    scheduler = ReduceLROnPlateau(optimizer, "min", factor=0.5, patience=5, verbose=True)
+    scheduler = ReduceLROnPlateau(optimizer, "min", factor=0.5, patience=5, verbose=True, cooldown=10)
+    loss_function = torch.nn.CrossEntropyLoss(torch.FloatTensor([1.0, 0.2])).to(device)
+
+    f1_score = BinaryF1Score(threshold=0.5).to(device)
+    auc = AUROC(task="binary").to(device)
+    precission = Precision(task="binary").to(device)
+    recall = Recall(task="binary").to(device)
 
     for epoch in range(epochs):
         train_losses, val_losses = [], []
@@ -80,9 +92,14 @@ def train(
             input_image, labels = input_image.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = model(input_image)
-            train_loss = torch.nn.BCEWithLogitsLoss()(outputs, labels.reshape(-1, 1))
+            train_loss = loss_function(outputs, labels)
             train_loss.backward()
             optimizer.step()
+
+            auc(outputs, labels)
+            f1_score(outputs, labels)
+            precission(outputs, labels)
+            recall(outputs, labels)
 
             train_losses.append(train_loss.item())
 
@@ -92,19 +109,35 @@ def train(
                 input_image = torch.cat([bottom_image, side_image], dim=1).float()
                 input_image, labels = input_image.to(device), labels.to(device)
                 outputs = model(input_image)
-                val_loss = torch.nn.BCEWithLogitsLoss()(outputs, labels.reshape(-1, 1))
+                val_loss = loss_function(outputs, labels)
                 scheduler.step(train_loss)
+
+                auc(outputs, labels)
+                f1_score(outputs, labels)
+                precission(outputs, labels)
+                recall(outputs, labels)
 
                 val_losses.append(val_loss.item())
 
         if mlflow_tracking:
             mlflow.log_metrics(
-                {"train_loss": mean(train_losses), "val_loss": mean(val_losses), "lr": scheduler.get_last_lr()[0]},
+                {
+                    "train_loss": mean(train_losses),
+                    "val_loss": mean(val_losses),
+                    "lr": scheduler.get_last_lr()[0],
+                    "f1_score": f1_score.compute().to("cpu").item(),
+                    "auc": auc.compute().to("cpu").item(),
+                    "precission": precission.compute().to("cpu").item(),
+                    "recall": recall.compute().to("cpu").item(),
+                },
                 step=epoch,
             )
         logging.info(
-            f"Epoch {epoch}, train_loss: {mean(train_losses)}, val_loss: {mean(val_losses)}, lr: {scheduler.get_last_lr()[0]}"
+            f"Epoch {epoch}, train_loss: {mean(train_losses)}, val_loss: {mean(val_losses)}, lr: {scheduler.get_last_lr()[0]}, f1_score: {f1_score.compute().item()}, auc: {auc.compute().item()}, precission: {precission.compute().item()}, recall: {recall.compute().item()}"
         )
+
+        auc.reset()
+        f1_score.reset()
 
         if (epoch + 1) % save_every == 0:
             logging.info(f"Saving model at epoch {epoch}")

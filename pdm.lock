@@ -5,7 +5,7 @@
 groups = ["default", "data"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:56951d8c543149ba1146fee50ad11ff83f42939bf90227fe207ac666bcb63ade"
+content_hash = "sha256:9aaa58be96f0346b4dbf829b5fcf2c6c3fbb3ee75765ccd291d9ace339dff828"
 
 [[metadata.targets]]
 requires_python = "==3.11.*"
@@ -1266,6 +1266,23 @@ dependencies = [
 files = [
     {file = "kombu-5.4.0-py3-none-any.whl", hash = "sha256:c8dd99820467610b4febbc7a9e8a0d3d7da2d35116b67184418b51cc520ea6b6"},
     {file = "kombu-5.4.0.tar.gz", hash = "sha256:ad200a8dbdaaa2bbc5f26d2ee7d707d9a1fded353a0f4bd751ce8c7d9f449c60"},
+]
+
+[[package]]
+name = "lightning-utilities"
+version = "0.11.7"
+requires_python = ">=3.8"
+summary = "Lightning toolbox for across the our ecosystem."
+groups = ["default"]
+dependencies = [
+    "importlib-metadata>=4.0.0; python_version < \"3.8\"",
+    "packaging>=17.1",
+    "setuptools",
+    "typing-extensions",
+]
+files = [
+    {file = "lightning_utilities-0.11.7-py3-none-any.whl", hash = "sha256:84eebbc700edbfaa6c005458fc911a7fe7f99f02970b00cb322b4d2767deba98"},
+    {file = "lightning_utilities-0.11.7.tar.gz", hash = "sha256:7e8458a9f0bfb51ffe6c5ab3957aa37b2792fe8281dd9f1b66aa513a558ec4ce"},
 ]
 
 [[package]]
@@ -2609,6 +2626,23 @@ files = [
     {file = "torch-2.4.1-cp311-cp311-manylinux2014_aarch64.whl", hash = "sha256:ef503165f2341942bfdf2bd520152f19540d0c0e34961232f134dc59ad435be8"},
     {file = "torch-2.4.1-cp311-cp311-win_amd64.whl", hash = "sha256:092e7c2280c860eff762ac08c4bdcd53d701677851670695e0c22d6d345b269c"},
     {file = "torch-2.4.1-cp311-none-macosx_11_0_arm64.whl", hash = "sha256:ddddbd8b066e743934a4200b3d54267a46db02106876d21cf31f7da7a96f98ea"},
+]
+
+[[package]]
+name = "torchmetrics"
+version = "1.4.1"
+requires_python = ">=3.8"
+summary = "PyTorch native Metrics"
+groups = ["default"]
+dependencies = [
+    "lightning-utilities>=0.8.0",
+    "numpy>1.20.0",
+    "packaging>17.1",
+    "torch>=1.10.0",
+    "typing-extensions; python_version < \"3.9\"",
+]
+files = [
+    {file = "torchmetrics-1.4.1-py3-none-any.whl", hash = "sha256:c2e7cd56dd8bdc60ae63d712f3bdce649f23bd174d9180bdd0b746e0230b865a"},
 ]
 
 [[package]]
