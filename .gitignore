@@ -162,4 +162,10 @@ cython_debug/
 #.idea/
 
 # Data folders
-data
+data/*
+!src/data/*
+models
+
+# MLFlow
+mlruns
+mlartifacts
