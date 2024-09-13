@@ -4,6 +4,7 @@ The repository for training the if-pallete-need-replacment classification model 
 
 # Installing dependencies
 ```bash
+apt update && apt-get install ffmpeg libsm6 libxext6 -y
 pip install pdm
 pdm install
 ```
@@ -30,6 +31,9 @@ Processed
         ├── 4.jpg
         └── ...
 ```
+
+# Dataset Source
+You can download our processed pallet images from [Goolge Drive](https://drive.google.com/drive/folders/1UPX0piYZj0Qi5x7uVTgp4FKtyOMyv2wi) 
 
 # MLFlow settings
 
